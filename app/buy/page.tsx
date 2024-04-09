@@ -1,15 +1,13 @@
-'use client'
+"use client";
 
-import React from 'react'
-import { useState } from 'react';
-import Footer from '../components/Footer';
-
+import React from "react";
+import { useState } from "react";
+import Footer from "../components/Footer";
 
 interface ApiResponse {
   statusCode: number;
   message: string;
 }
-
 
 const page = () => {
   const [username, setUsername] = useState<string>("");
@@ -17,7 +15,7 @@ const page = () => {
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
   // API key for authentication
-  const apiKey: string = "<your-api-key>";
+  const apiKey: string = "V9yKoxl5EljDbawloXWHaD2zgclp28U9f5YSY3U3";
 
   // Handler function to fetch user's wallet address and initiate vending
   const handleVendEspees = async () => {
@@ -38,7 +36,24 @@ const page = () => {
       const userAddressData = await userAddressResponse.json();
       const userWalletAddress: string = userAddressData.wallet_address;
 
-      // Step 2: Start to Vend Espees
+      //Step 2: Get Vending Token
+      const vendingToken = await fetch(
+        "https://api.espees.org/agents/vending/createtoken",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            vending_wallet_address: userWalletAddress,
+            vending_wallet_pin: "pin_of_vending_agent",
+            vending_hash: "16_character_unique_string",
+          }),
+        }
+      );
+
+      // Step 3: Start to Vend Espees
       const vendEspeesResponse = await fetch(
         "https://api.espees.org/v2/vending/vend",
         {
@@ -48,7 +63,7 @@ const page = () => {
             "x-api-key": apiKey,
           },
           body: JSON.stringify({
-            vending_token: "",
+            vending_token: vendingToken,
             user_wallet: userWalletAddress,
             amount_in_espees: vendingAmount,
           }),
@@ -64,7 +79,7 @@ const page = () => {
   };
 
   return (
-    <main className=' overflow-x-hidden h-screen'>
+    <main className=" overflow-x-hidden h-screen">
       <div className=" bg-purple-200 w-screen h-full flex justify-center items-center">
         <div className="flex-col border p-10 rounded-lg bg-white">
           {/* Input for username */}
@@ -111,6 +126,6 @@ const page = () => {
       <Footer />
     </main>
   );
-}
+};
 
-export default page
+export default page;

@@ -74,7 +74,7 @@ const page = () => {
   };
 
   // API key for authentication
-  const apiKey: string = "<your-api-key>";
+  const apiKey: string = "V9yKoxl5EljDbawloXWHaD2zgclp28U9f5YSY3U3";
 
   // Handler function to fetch user's wallet address and initiate vending
   const handleVendEspees = async () => {
