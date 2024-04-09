@@ -3,6 +3,7 @@
 import React from "react";
 import { useState } from "react";
 import Footer from "../components/Footer";
+import crypto from "crypto"
 
 interface ApiResponse {
   statusCode: number;
@@ -20,7 +21,7 @@ const page = () => {
   // Handler function to fetch user's wallet address and initiate vending
   const handleVendEspees = async () => {
     try {
-      // Step 1: Get user's wallet address from username
+
       const userAddressResponse = await fetch(
         "https://api.espees.org/user/address",
         {
@@ -29,12 +30,31 @@ const page = () => {
             "Content-Type": "application/json",
             "x-api-key": apiKey,
           },
-          body: JSON.stringify({ username }),
+          body: JSON.stringify({ username })
         }
       );
 
+      if (!userAddressResponse.ok) {
+        console.error(
+          "Error fetching user address:",
+          userAddressResponse.status
+        );
+        return;
+      }
+
       const userAddressData = await userAddressResponse.json();
+      console.log(userAddressResponse.json());
+      
       const userWalletAddress: string = userAddressData.wallet_address;
+      console.log(userAddressData.wallet_address);
+      
+
+      const generateVendingHash = (): string => {
+        return crypto.randomBytes(8).toString("hex");
+      };
+
+      const vendingHash = generateVendingHash();
+      const pin: string = "1010";
 
       //Step 2: Get Vending Token
       const vendingToken = await fetch(
@@ -47,8 +67,8 @@ const page = () => {
           },
           body: JSON.stringify({
             vending_wallet_address: userWalletAddress,
-            vending_wallet_pin: "pin_of_vending_agent",
-            vending_hash: "16_character_unique_string",
+            vending_wallet_pin: pin,
+            vending_hash: vendingHash,
           }),
         }
       );

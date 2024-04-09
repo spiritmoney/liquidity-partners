@@ -23,7 +23,7 @@ const Hero = () => {
           className=""
         />
       </div>
-      <div className="flex pl-[350px] space-x-5">
+      <div className="flex justify-start items-start xl:ml-[350px] xl:right-0 relative right-1 space-x-5">
         <Link href="/buy">
           <button className="border-2 border-white px-8 py-2 rounded-lg text-[22px] font-medium text-white hover:bg-white hover:text-indigo-800 active:bg-white active:text-indigo-800">
             Buy

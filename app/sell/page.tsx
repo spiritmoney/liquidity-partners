@@ -3,6 +3,8 @@
 import React, { ChangeEvent } from "react";
 import { useState } from "react";
 import Footer from "../components/Footer";
+import crypto from "crypto";
+require("dotenv").config();
 
 interface ApiResponse {
   statusCode: number;
@@ -75,6 +77,7 @@ const page = () => {
 
   // API key for authentication
   const apiKey: string = "V9yKoxl5EljDbawloXWHaD2zgclp28U9f5YSY3U3";
+  console.log(apiKey)
 
   // Handler function to fetch user's wallet address and initiate vending
   const handleVendEspees = async () => {
@@ -95,7 +98,31 @@ const page = () => {
       const userAddressData = await userAddressResponse.json();
       const userWalletAddress: string = userAddressData.wallet_address;
 
-      // Step 2: Start to Vend Espees
+      const generateVendingHash = (): string => {
+        return crypto.randomBytes(8).toString("hex");
+      };
+
+      const vendingHash = generateVendingHash()
+      const pin: string = "1010"
+
+      //Step 2: Get Vending Token
+      const vendingToken = await fetch(
+        "https://api.espees.org/agents/vending/createtoken",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+          },
+          body: JSON.stringify({
+            vending_wallet_address: userWalletAddress,
+            vending_wallet_pin: pin,
+            vending_hash: vendingHash,
+          }),
+        }
+      );
+
+      // Step 3: Start to Vend Espees
       const vendEspeesResponse = await fetch(
         "https://api.espees.org/v2/vending/vend",
         {
@@ -105,7 +132,7 @@ const page = () => {
             "x-api-key": apiKey,
           },
           body: JSON.stringify({
-            vending_token: "",
+            vending_token: vendingToken,
             user_wallet: userWalletAddress,
             amount_in_espees: vendingAmount,
           }),
