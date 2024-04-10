@@ -1,9 +1,9 @@
 "use client";
 
 import React from "react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Footer from "../components/Footer";
-import crypto from "crypto"
+const vendingToken = require("@/index");
 
 interface ApiResponse {
   statusCode: number;
@@ -12,6 +12,7 @@ interface ApiResponse {
 
 const page = () => {
   const [username, setUsername] = useState<string>("");
+  const [userWalletAddress, setUserWalletAddress] = useState<string>("");
   const [vendingAmount, setVendingAmount] = useState<number>(); // Default vending amount
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
 
@@ -21,7 +22,7 @@ const page = () => {
   // Handler function to fetch user's wallet address and initiate vending
   const handleVendEspees = async () => {
     try {
-
+      //Step 1: Get user wallet address
       const userAddressResponse = await fetch(
         "https://api.espees.org/user/address",
         {
@@ -30,50 +31,26 @@ const page = () => {
             "Content-Type": "application/json",
             "x-api-key": apiKey,
           },
-          body: JSON.stringify({ username })
+          body: JSON.stringify({ username }),
+          mode: "no-cors",
         }
       );
 
       if (!userAddressResponse.ok) {
         console.error(
-          "Error fetching user address:",
+          "Error fetching Agent address:",
           userAddressResponse.status
         );
         return;
       }
 
       const userAddressData = await userAddressResponse.json();
-      console.log(userAddressResponse.json());
-      
-      const userWalletAddress: string = userAddressData.wallet_address;
-      console.log(userAddressData.wallet_address);
-      
+      console.log(userAddressData);
 
-      const generateVendingHash = (): string => {
-        return crypto.randomBytes(8).toString("hex");
-      };
+      setUserWalletAddress(userAddressData.wallet_address);
+      console.log(userWalletAddress);
 
-      const vendingHash = generateVendingHash();
-      const pin: string = "1010";
-
-      //Step 2: Get Vending Token
-      const vendingToken = await fetch(
-        "https://api.espees.org/agents/vending/createtoken",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            vending_wallet_address: userWalletAddress,
-            vending_wallet_pin: pin,
-            vending_hash: vendingHash,
-          }),
-        }
-      );
-
-      // Step 3: Start to Vend Espees
+      // Step 2: Start to Vend Espees
       const vendEspeesResponse = await fetch(
         "https://api.espees.org/v2/vending/vend",
         {
@@ -87,6 +64,7 @@ const page = () => {
             user_wallet: userWalletAddress,
             amount_in_espees: vendingAmount,
           }),
+          mode: "no-cors",
         }
       );
 
@@ -121,7 +99,7 @@ const page = () => {
               type="number"
               placeholder="Enter amount in Espees"
               value={vendingAmount}
-              onChange={(e) => setVendingAmount(Number(e.target.value))}
+              onChange={(e) => setVendingAmount(parseFloat(e.target.value))}
               className="focus:outline-none focus:ring-transparent border-2 p-2 rounded-md"
             />
           </div>
