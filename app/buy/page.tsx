@@ -1,23 +1,26 @@
 "use client";
 
-import React, { FormEvent, FormEventHandler } from "react";
-import crypto from "crypto";
+import React, { FormEvent } from "react";
 import { useState } from "react";
 import Footer from "../components/Footer";
+import crypto from "crypto";
 
 interface ApiResponse {
   statusCode: number;
   message: string;
 }
 
-const page = () => {
+// const apiKey = "V9yKoxl5EljDbawloXWHaD2zgclp28U9f5YSY3U3";
+
+const page: React.FC = () => {
   const [username, setUsername] = useState<string>("");
-  const [userWalletAddress, setUserWalletAddress] = useState<string>("");
-  const [vendingAmount, setVendingAmount] = useState<number>(); // Default vending amount
+  const [vendingAmount, setVendingAmount] = useState<number | any>(); // Default vending amount
+  const [vendingToken, setVendingToken] = useState<string>();
+  const [userWalletAddress, setUserWalletAddress] = useState<string>();
   const [apiResponse, setApiResponse] = useState<ApiResponse | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [vendingToken, setVendingToken] = useState("");
 
+  // Handler function to initiate vending
   // API key for authentication
   const apiKey: string = "V9yKoxl5EljDbawloXWHaD2zgclp28U9f5YSY3U3";
   const agentWallet: string = "0x0bd3e40f8410ea473850db5479348f074d254ded";
@@ -30,33 +33,30 @@ const page = () => {
   const fetchVendingToken = async () => {
     const vendingHash = generateVendingHash();
     console.log(vendingHash);
-    
+
     try {
-      const response = await fetch(
-        "https://api.espees.org/agents/vending/createtoken",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            vending_wallet_address: agentWallet,
-            vending_wallet_pin: agentPin,
-            vending_hash: vendingHash,
-          }),
-          // mode: "no-cors",
-        }
-      );
+      const response = await fetch("/api/token", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          vending_wallet_address: agentWallet,
+          vending_wallet_pin: agentPin,
+          vending_hash: vendingHash,
+        }),
+        // mode: "no-cors",
+      });
       const data = await response.json();
       setVendingToken(data.vending_token);
     } catch (err) {
       console.log(err);
     }
   };
-  const fetchUserWallet = async () => {
+  const fetchUserWallet = async (username: string) => {
     try {
-      const response = await fetch("https://api.espees.org/user/address", {
+      const response = await fetch("/api/wallet", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -80,24 +80,21 @@ const page = () => {
       // First, fetch the vending token
       await fetchVendingToken();
       // Next, fetch the user wallet address
-      await fetchUserWallet();
+      await fetchUserWallet(username);
       // Now proceed to vend Espees
-      const vendEspeesResponse = await fetch(
-        "https://api.espees.org/v2/vending/vend",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-          },
-          body: JSON.stringify({
-            vending_token: vendingToken,
-            user_wallet: userWalletAddress,
-            amount_in_espees: vendingAmount,
-          }),
-          // mode: "no-cors",
-        }
-      );
+      const vendEspeesResponse = await fetch("/api/vend", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          vending_token: vendingToken,
+          user_wallet: userWalletAddress,
+          amount_in_espees: vendingAmount,
+        }),
+        // mode: "no-cors",
+      });
 
       const vendEspeesData = await vendEspeesResponse.json();
       setApiResponse(vendEspeesData);
@@ -108,7 +105,6 @@ const page = () => {
       setIsLoading(false); // Set loading to false when the request completes
     }
   };
-
   return (
     <main className=" overflow-x-hidden h-screen">
       <div className=" bg-purple-200 w-screen h-full flex justify-center items-center">
