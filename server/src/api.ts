@@ -9,6 +9,7 @@ console.log(hash);
 
 
 export const fetchVendingToken = async () => {
+  
   const body = {
     vending_wallet_address: agentWallet,
     vending_wallet_pin: agentPin,
@@ -43,7 +44,7 @@ export const fetchVendingToken = async () => {
 };
 
 export const fetchUserWallet = async (username: string) => {
-  const body = { username };
+  const body = { username: username };
 
   console.log("fetchUserWallet request", body);
 
